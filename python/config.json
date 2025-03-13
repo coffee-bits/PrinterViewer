@@ -1,0 +1,7 @@
+{
+    "prusa_ip": "192.168.XXX.XXX",
+    "prusa_api_key": "123456789abcdef",
+    "mqtt_broker": "192.168.XXX.XXX",
+    "mqtt_port": 1883,
+    "mqtt_topic": "python/mqtt"
+}
