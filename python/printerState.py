@@ -51,11 +51,33 @@ async def timer():
     """Timer function to periodically fetch printer data and publish to MQTT."""
     while True:
         try:
-            get_print = prusa_mk4.get_printer()  # Get printer data
-            temp_bed = get_print.json()["telemetry"]["temp-bed"]  # Extract bed temperature
+            get_print = prusa_mk4.get_status()  # Get printer data
+            logging.info(get_print.json())  # Log the JSON data
+            
+            # Extract bed temperature
+            temp_bed = get_print.json()["printer"]["temp_bed"]
             logging.info(f"Bed temperature: {temp_bed}")
-            msg = f"messages: {temp_bed}"  # Create MQTT message
-            client.publish(mqtt_topic, msg.encode())  # Publish message to MQTT (encode as bytes)
+            msg = f"{temp_bed}"  # Create MQTT message
+            client.publish(mqtt_topic+"/bed", msg.encode())  # Publish message to MQTT (encode as bytes)
+            
+            # Extract nozzle temperature
+            temp_nozzle = get_print.json()["printer"]["temp_nozzle"]
+            logging.info(f"Nozzle temperature: {temp_nozzle}")
+            msg = f"{temp_nozzle}"  # Create MQTT message
+            client.publish(mqtt_topic+"/tool", msg.encode())  # Publish message to MQTT (encode as bytes)
+            
+            # Extract printer state
+            state = get_print.json()["printer"]["state"]
+            logging.info(f"Printer state: {state}")
+            msg = f"{state}"  # Create MQTT message
+            client.publish(mqtt_topic+"/state", msg.encode())  # Publish message to MQTT (encode as bytes)
+            
+            # Extract job progress, set to 0 if 'job' key is not available
+            progress = get_print.json().get("job", {}).get("progress", 0)
+            logging.info(f"Progress: {progress}")
+            msg = f"{progress}"  # Create MQTT message
+            client.publish(mqtt_topic+"/printing", msg.encode())  # Publish message to MQTT (encode as bytes)
+
             logging.info("MQTT message sent")
         except requests.exceptions.ConnectionError as e:
             logging.error(f"Printer connection error: {e}")
